@@ -1,0 +1,51 @@
+{
+  "Sanitation & Waste": {
+    "subcategories": ["Uncollected garbage", "Overflowing bins", "Illegal dumping", "Drain blockage"],
+    "department": "Sanitation Dept",
+    "sla_hours": 48,
+    "severity_weight": 1.0,
+    "keywords": ["garbage", "trash", "waste", "bin", "dump", "dumping", "drain", "litter"]
+  },
+  "Water Supply": {
+    "subcategories": ["No supply", "Low pressure", "Contaminated water", "Pipe leakage"],
+    "department": "Water Board",
+    "sla_hours": 24,
+    "severity_weight": 1.3,
+    "keywords": ["water", "pipe", "leak", "leakage", "supply", "pressure", "contaminated", "burst"]
+  },
+  "Roads & Infrastructure": {
+    "subcategories": ["Pothole", "Broken footpath", "Missing manhole cover", "Damaged divider"],
+    "department": "Public Works Dept",
+    "sla_hours": 120,
+    "severity_weight": 1.1,
+    "keywords": ["pothole", "road", "footpath", "manhole", "divider", "pavement", "crack"]
+  },
+  "Street Lighting": {
+    "subcategories": ["Non-functional light", "Exposed wiring"],
+    "department": "Electricity Dept",
+    "sla_hours": 120,
+    "severity_weight": 1.2,
+    "keywords": ["streetlight", "light", "wiring", "wire", "electric", "pole", "dark"]
+  },
+  "Public Health & Safety": {
+    "subcategories": ["Stray animals", "Mosquito breeding", "Unsafe construction"],
+    "department": "Health Dept",
+    "sla_hours": 168,
+    "severity_weight": 1.0,
+    "keywords": ["stray", "dog", "mosquito", "construction", "unsafe", "health"]
+  },
+  "Environment": {
+    "subcategories": ["Air pollution", "Noise pollution", "Illegal tree felling", "Industrial dumping"],
+    "department": "Pollution Control Dept",
+    "sla_hours": 168,
+    "severity_weight": 0.9,
+    "keywords": ["pollution", "smoke", "noise", "tree", "felling", "industrial", "air"]
+  },
+  "Encroachment & Public Property": {
+    "subcategories": ["Illegal vendors", "Damaged public property", "Parking violation"],
+    "department": "Town Planning / Traffic Police",
+    "sla_hours": 240,
+    "severity_weight": 0.8,
+    "keywords": ["encroachment", "vendor", "parking", "footpath blocked", "public property"]
+  }
+}
