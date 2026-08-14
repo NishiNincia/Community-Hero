@@ -7,6 +7,7 @@ const complaintsRoutes = require('./routes/complaints');
 const dashboardRoutes = require('./routes/dashboard');
 const leaderboardRoutes = require('./routes/leaderboard');
 const configRoutes = require('./routes/config');
+const issueRoutes = require('./routes/issues');
 
 const app = express();
 app.use(cors());
@@ -19,6 +20,7 @@ app.use('/api/complaints', complaintsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/issues', issueRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

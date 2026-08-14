@@ -7,6 +7,28 @@ import AnalyticsTab from './AnalyticsTab.jsx';
 import HeroesTab from './HeroesTab.jsx';
 import ReportModal from './ReportModal.jsx';
 import IssueDetailModal from './IssueDetailModal.jsx';
+import { INITIAL_ISSUES, STAGES } from '../data.js';
+import { fetchComplaints, createComplaint, updateComplaintStatus } from '../api.js';
+
+function mapIssueFromBackend(complaint) {
+  return {
+    id: complaint.id,
+    title: complaint.title || 'Civic issue',
+    cat: complaint.cat || complaint.category || 'General',
+    sev: complaint.sev ?? complaint.severity_score ?? 5,
+    urg: complaint.urg || complaint.urgency_level || 'Medium',
+    dept: complaint.dept || complaint.department || 'Public Works',
+    status: complaint.status || 'Reported',
+    eta: complaint.eta || (complaint.status === 'Resolved' ? 'Resolved' : complaint.slaDeadline || 'TBD'),
+    votes: complaint.votes ?? 0,
+    lat: complaint.lat ?? complaint.latitude ?? 40.712,
+    lng: complaint.lng ?? complaint.longitude ?? -74.004,
+    ward: complaint.ward || 'Ward 3',
+    desc: complaint.desc || complaint.description || '',
+    ai: complaint.ai || complaint.ai_summary || complaint.sum || 'Issue logged.',
+    stage: complaint.stage ?? STAGES.indexOf(complaint.status || 'Reported'),
+  };
+}
 
 export default function MainApp({ role, user, issues, setIssues, onSignOut, showToast }) {
   const isGovt = role === 'government';
@@ -16,6 +38,19 @@ export default function MainApp({ role, user, issues, setIssues, onSignOut, show
   const [selIssue, setSelIssue] = React.useState(null);
   const [selMapId, setSelMapId] = React.useState(null);
   const [showRep, setShowRep] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!user) return;
+
+    fetchComplaints()
+      .then((items) => {
+        const mapped = Array.isArray(items) ? items.map(mapIssueFromBackend) : INITIAL_ISSUES;
+        setIssues(mapped);
+      })
+      .catch(() => {
+        setIssues(INITIAL_ISSUES);
+      });
+  }, [user, setIssues]);
 
   const navItems = isGovt
     ? [{ id: 'issues', lb: '⚠ Issues' }, { id: 'map', lb: '🗺 Map' }, { id: 'analytics', lb: '📊 Analytics' }, { id: 'heroes', lb: '🏆 Citizens' }]
@@ -27,33 +62,42 @@ export default function MainApp({ role, user, issues, setIssues, onSignOut, show
   const openReport = () => setShowRep(true);
   const selectMap = (iss) => { setSelMapId(iss.id); setSelIssue(iss); };
 
-  const handleReportSubmit = ({ desc, result }) => {
-    const newIssue = {
-      id: 'ISS-00' + (issues.length + 1),
-      title: desc.slice(0, 50) + (desc.length > 50 ? '…' : ''),
-      cat: result ? result.issue_category : 'General',
-      sev: result ? result.severity_score : 5,
-      urg: result ? result.urgency_level : 'Medium',
-      dept: result ? result.responsible_department : 'Public Works',
-      status: 'Reported',
-      eta: result ? result.estimated_resolution_time : 'TBD',
-      votes: 0,
-      lat: 40.712 + (Math.random() - 0.5) * 0.01,
-      lng: -74.005 + (Math.random() - 0.5) * 0.01,
-      ward: 'Ward 3',
-      desc,
-      ai: result ? result.citizen_friendly_summary : 'Issue logged.',
-      stage: 0,
-    };
-    setIssues([newIssue, ...issues]);
-    setShowRep(false);
-    showToast('✓ Issue submitted! +150 Citizen Points earned');
+  const handleReportSubmit = async ({ desc, result }) => {
+    try {
+      const payload = {
+        title: desc.slice(0, 60),
+        description: desc,
+        category: result?.issue_category || 'General',
+        subcategory: result?.issue_category || 'General',
+        department: result?.responsible_department || 'Public Works',
+        severity_score: result?.severity_score || 5,
+        urgency_level: result?.urgency_level || 'Medium',
+        latitude: 40.712 + (Math.random() - 0.5) * 0.01,
+        longitude: -74.005 + (Math.random() - 0.5) * 0.01,
+        ward: 'Ward 3',
+        photoUrl: '',
+        citizen_friendly_summary: result?.citizen_friendly_summary || 'Issue logged and routed to the appropriate municipality team.',
+      };
+
+      const response = await createComplaint(payload);
+      const createdIssue = mapIssueFromBackend(response.complaint);
+      setIssues((prev) => [createdIssue, ...prev]);
+      setShowRep(false);
+      showToast('✓ Issue submitted! +150 Citizen Points earned');
+    } catch (error) {
+      showToast(error.message || 'Issue submission failed');
+    }
   };
 
-  const handleUpdateStatus = (id, newStatus) => {
-    setIssues(issues.map((i) => (i.id === id ? { ...i, status: newStatus } : i)));
-    setSelIssue(null);
-    showToast('✓ Status updated & citizen notified');
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await updateComplaintStatus(id, newStatus);
+      setIssues((prev) => prev.map((i) => (i.id === id ? { ...i, status: newStatus, stage: STAGES.indexOf(newStatus) } : i)));
+      setSelIssue(null);
+      showToast('✓ Status updated & citizen notified');
+    } catch (error) {
+      showToast(error.message || 'Status update failed');
+    }
   };
 
   return (

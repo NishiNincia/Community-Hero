@@ -1,5 +1,6 @@
 import React from 'react';
 import { GhostBtn, NavyBtn, AmberBtn, Input, LField } from './UI.jsx';
+import { loginCitizen, loginGovernment } from '../api.js';
 
 const CITIZEN_FEATURES = ['AI image analysis & auto-categorization', 'Real-time issue tracking pipeline', 'Community verification system', 'Earn citizen points & badges'];
 const GOVT_FEATURES = ['Priority queue & SLA tracking', 'AI-generated resolution reports', 'Department assignment & analytics', 'Real-time status control panel'];
@@ -19,10 +20,20 @@ export default function LoginForm({ role, onBack, onLoggedIn }) {
     setErr('');
     if (!email || !pw) { setErr('Please fill in all required fields.'); return; }
     if (isGovt && !empId) { setErr('Employee ID is required for Government login.'); return; }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
-    setLoading(false);
-    onLoggedIn({ name: isGovt ? 'Officer Sharma' : email.split('@')[0], empId, dept });
+    try {
+      const payload = isGovt
+        ? { email, password: pw, empId, dept }
+        : { email, password: pw };
+
+      const response = isGovt ? await loginGovernment(payload) : await loginCitizen(payload);
+      onLoggedIn(response.user);
+    } catch (e) {
+      setErr(e.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
